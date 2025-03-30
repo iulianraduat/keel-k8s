@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keel
+  labels:
+    app: keel
+spec:
+  selector:
+    app: keel
+  type: NodePort
+  ports:
+    - name: api
+      protocol: TCP
+      port: 9300
+      targetPort: 9300
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keel
+  labels:
+    app: keel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keel
+  template:
+    metadata:
+      labels:
+        app: keel
+    spec:
+      containers:
+        - name: keel
+          image: keelhq/keel:latest
+          ports:
+            - containerPort: 9300
+          env:
+            - name: KEEL_WEBHOOK_ENABLED
+              value: 'true'
+            - name: KEEL_KUBE_NAMESPACE
+              value: 'default'
+            - name: KEEL_LOG_LEVEL
+              value: 'warn'
+            - name: KEEL_NOTIFY_SLACK
+              value: 'false'
+            - name: KEEL_TRIGGER
+              value: 'webhook' # Enables webhook-based updates
+            # - name: KEEL_WEBHOOK_ENDPOINTS
+            #   value: 'http://keel:9300/v1/webhooks/registry'
+            - name: KEEL_ENABLE_UI # Enables the built-in UI
+              value: 'true'
+            # - name: KEEL_AUTH_ENABLED
+            #   value: 'true'
+            - name: BASIC_AUTH_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: BASIC_AUTH_USER
+                  name: keel-env
+            - name: BASIC_AUTH_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: BASIC_AUTH_PASSWORD
+                  name: keel-env
