@@ -6,3 +6,4 @@ metadata:
 resources:
   - keel-env-configmap.yaml
   - keel-deployment.yaml
+  - keel-credentials.yaml
